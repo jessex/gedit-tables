@@ -1,6 +1,6 @@
 [Gedit Plugin]
 Loader=python
-Module=gedit-tables
+Module=gedittables
 IAge=2
 Name=Table Utility
 Description=Automatically create tables
