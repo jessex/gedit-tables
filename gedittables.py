@@ -14,7 +14,7 @@ class TableMaker:
 		self.has_outer = has_outer
 	
 	def horizontal(self, outside):
-		"""Constructs and returns a horizontal row for the table."""
+		"""Constructs and returns a horizontal piece for the table."""
 		total = self.col * self.width
 		chars = []
 		if outside: #top or bottom horizontal piece
@@ -48,7 +48,7 @@ class TableMaker:
 					
 
 	def vertical(self):
-		"""Constructs and returns a vertical row for the table."""
+		"""Constructs and returns a vertical piece for the table."""
 		total = self.col * self.width
 		chars = []
 		if self.has_outer:
@@ -70,6 +70,8 @@ class TableMaker:
 		return ''.join(chars) #stringified character list
 		
 	def vertical_data(self, columns):
+		"""Constructs and returns a vertical piece containing data from the 
+		columns list."""
 		if self.col > len(columns):
 			white = " " * self.width
 			for i in range(self.col - len(columns)):
@@ -104,7 +106,9 @@ class TableMaker:
 		
 	def table_data(self, text, delimiter):
 		"""Constructs a table around a block of text with this TableMaker's 
-		parameters. Column and row count depends on the provided text."""
+		parameters. Column/row count and column width depends on the provided 
+		text. Text across multiple lines is split on new lines to determine 
+		rows, and individual rows are split on delimiter to make columns."""
 		#divide our text into rows and columns and set our row, col, width vars
 		lines = text.rsplit("\n")
 		self.row = len(lines)
@@ -139,7 +143,7 @@ class TableMaker:
 		
 	def centered(self, text, width):
 		"""Takes in a string of text and centers it in a whitespace-padding 
-		string of length=width. Example: 'abcdef', 8 -> ' abcdef '"""
+		string of length=width. Example: 'abcdef', 8 -> ' abcdef '."""
 		if len(text) == width:
 			return text
 		if len(text) > width:
