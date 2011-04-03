@@ -1,3 +1,18 @@
+import gedit, gtk
+from gettext import gettext
+
+ui_str = """<ui>
+  <menubar name="MenuBar">
+    <menu name="ToolsMenu" action="Tools">
+      <placeholder name="ToolsOps_2">
+        <menuitem name="Gedit Tables" action="Gedit Tables"/>
+      </placeholder>
+    </menu>
+  </menubar>
+</ui>
+"""
+
+
 class TableMaker:
 
 	def __init__(self, col, row, height, width, chars, has_outer):
@@ -21,7 +36,7 @@ class TableMaker:
 			total += self.col + 1
 			for i in range(total):
 				if i % (self.width+1) == 0:
-					chars.append(self.inter_out)
+					chars.append(self.inter_out) #all intersections are outer
 				else:
 					chars.append(self.horiz)
 		else: #inner horizontal piece
@@ -30,9 +45,9 @@ class TableMaker:
 				for i in range(total):
 					if i % (self.width+1) == 0:
 						if i == 0 or i == total - 1:
-							chars.append(self.inter_out)
+							chars.append(self.inter_out) #edge pieces
 						else:
-							chars.append(self.inter_in)
+							chars.append(self.inter_in) #inner intersections
 					else:
 						chars.append(self.horiz)
 			else: #no outer wall to watch for
@@ -43,7 +58,6 @@ class TableMaker:
 							chars.append(self.inter_in)
 					else:
 						chars.append(self.horiz)
-		#chars.append("\n")
 		return ''.join(chars) #stringified character list
 					
 
@@ -51,28 +65,27 @@ class TableMaker:
 		"""Constructs and returns a vertical piece for the table."""
 		total = self.col * self.width
 		chars = []
-		if self.has_outer:
+		if self.has_outer: #vert, white space, vert, whitespace, ... , vert
 			total += self.col + 1
 			for i in range(total):
 				if i % (self.width + 1) == 0:
 					chars.append(self.vert)
 				else:
 					chars.append(' ')
-		else:
+		else: #white space, vert, white space, vert, ... , white space
 			total += self.col - 1
 			for i in range(total):
 				if (i + 1) % (self.width + 1) == 0:
-					if i != total:
+					if i != total: #last char will make check so filter out
 						chars.append(self.vert)
 				else:
 					chars.append(' ')
-		#chars.append("\n")
 		return ''.join(chars) #stringified character list
 		
 	def vertical_data(self, columns):
 		"""Constructs and returns a vertical piece containing data from the 
 		columns list."""
-		if self.col > len(columns):
+		if self.col > len(columns): #fill in extra table columns with whitespace
 			white = " " * self.width
 			for i in range(self.col - len(columns)):
 				columns.append(white)
@@ -92,7 +105,7 @@ class TableMaker:
 	def table(self):
 		"""Constructs and returns a table with this TableMaker's parameters."""
 		pieces = []
-		for i in range(self.row):
+		for i in range(self.row): #build each row as horizontal then vertical(s)
 			if i != 0:
 				pieces.append(self.horizontal(False))
 			else:
@@ -100,7 +113,7 @@ class TableMaker:
 					pieces.append(self.horizontal(True))
 			for j in range(self.height):
 				pieces.append(self.vertical())
-		if self.has_outer:
+		if self.has_outer: #bottom horizontal piece if outer border
 			pieces.append(self.horizontal(True))
 		return '\n'.join(pieces)
 		
@@ -142,8 +155,9 @@ class TableMaker:
 		return '\n'.join(pieces)
 		
 	def centered(self, text, width):
-		"""Takes in a string of text and centers it in a whitespace-padding 
-		string of length=width. Example: 'abcdef', 8 -> ' abcdef '."""
+		"""Takes in a string of text and centers it in a whitespace-padded 
+		string of length=width. Example: 'abcdef', 8 -> ' abcdef '. Example: 
+		'abcdef', 11 -> '  abcdef   '. Example: 'ab', 2 -> 'ab'."""
 		if len(text) == width:
 			return text
 		if len(text) > width:
@@ -162,4 +176,64 @@ class TableMaker:
 		return str
 		
 		
+class GTWindow:
+
+	def __init__(self, plugin, window):
+		self.window = window
+		self.plugin = plugin
+		self.insert_menu()
+		
+	def deactivate(self):
+		self.remove_menu()
+		self.window = None
+		self.plugin = None
+		self.action_group = None
+		
+	def insert_menu(self):
+		manager = self.window.get_ui_manager()
+		#create action group
+		self.action_group = gtk.ActionGroup("Gedit Tables Actions")
+		#add actions to group
+		self.action_group.add_actions([("Gedit Tables", None, 
+		gettext("Create Table"), None, gettext("Create a Table"), 
+		self.add_table)])
+		#add action group to manager
+		manager.insert_action_group(self.action_group, -1)
+		self.ui_id = manager.add_ui_from_string(ui_str)
+		
+	def remove_menu(self):
+		manager = self.window.get_ui_manager()
+		manager.remove_ui(self.ui_id)
+		manager.remove_action_group(self.action_group)
+		manager.ensure_update()
+		
+	def update_ui(self):
+		self.action_group.set_sensitive(self.window.get_active_document()!=None)
+		
+	def add_table(self, action):
+		doc = self.window.get_active_document()
+		if not doc:
+			return
+		tm = TableMaker(4, 5, 3, 6, ("-", "|", "o", "+"), True)
+		doc.set_text(tm.table())
+	
+	
+class GeditTables(gedit.Plugin):
+
+	def __init__(self):
+		gedit.Plugin.__init__(self)
+		self.instances = {}
+	
+	def activate(self, window):
+		self.instances[window] = GTWindow(self, window)
+	
+	def deactivate(self, window):
+		self.instances[window].deactivate()
+		del self.instances[window]
+		
+	def update_ui(self, window):
+		self.instances[window].update_ui()
+	
+	
+	
 		
