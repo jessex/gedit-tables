@@ -1,7 +1,8 @@
 import gedit, gtk
 from gettext import gettext
 
-ui_str = """<ui>
+ui_str = """
+<ui>
   <menubar name="MenuBar">
     <menu name="ToolsMenu" action="Tools">
       <placeholder name="ToolsOps_2">
@@ -196,7 +197,7 @@ class GTWindow:
 		#add actions to group
 		self.action_group.add_actions([("Gedit Tables", None, 
 		gettext("Create Table"), None, gettext("Create a Table"), 
-		self.add_table)])
+		self.launch_dialog)])
 		#add action group to manager
 		manager.insert_action_group(self.action_group, -1)
 		self.ui_id = manager.add_ui_from_string(ui_str)
@@ -210,12 +211,11 @@ class GTWindow:
 	def update_ui(self):
 		self.action_group.set_sensitive(self.window.get_active_document()!=None)
 		
-	def add_table(self, action):
+	def launch_dialog(self, action):
 		doc = self.window.get_active_document()
 		if not doc:
 			return
-		tm = TableMaker(4, 5, 3, 6, ("-", "|", "o", "+"), True)
-		doc.set_text(tm.table())
+		self.plugin.on_menu_click(self.window)
 	
 	
 class GeditTables(gedit.Plugin):
@@ -223,6 +223,7 @@ class GeditTables(gedit.Plugin):
 	def __init__(self):
 		gedit.Plugin.__init__(self)
 		self.instances = {}
+		self.dialog = None
 	
 	def activate(self, window):
 		self.instances[window] = GTWindow(self, window)
@@ -233,7 +234,36 @@ class GeditTables(gedit.Plugin):
 		
 	def update_ui(self, window):
 		self.instances[window].update_ui()
-	
-	
-	
 		
+	def insert_table(self, table, document):
+		document.insert_at_cursor(table) #insert table at cursor position
+		
+	def insert_data_table(self, document, delimiter, table_maker):
+		bounds = document.get_selection_bounds() #get boundaries of highlighted
+		if not bounds:
+			return False
+		start, end = bounds
+		
+		text = document.get_text(start, end) #get highlighted text
+		table = table_maker.table_data(text, delimiter) #create table around it
+		document.delete(start, end) #delete highlighted portion and...
+		document.insert_at_cursor(table) #...overwrite with table
+	
+	def on_menu_click(self, window):
+		if not self.dialog:
+			self.dialog = gtk.Dialog(gettext("Insert Table"), window, 
+			gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.BUTTONS_OK_CANCEL))
+			
+			#build custom dialog with widgets
+			
+			self.dialog.connect('response', self.on_dialog_response)
+		
+	def on_dialog_response(self, dialog, response):
+		if response == gtk.RESPONSE_OK:
+			pass		
+		else:
+			self.dialog.destroy()
+			self.dialog = None
+			
+			
+			
