@@ -1,14 +1,17 @@
-import gedit, gtk
+import gedit
+import pygtk
+pygtk.require('2.0')
+import gtk
 from gettext import gettext
 
 ui_str = """
 <ui>
   <menubar name="MenuBar">
-    <menu name="ToolsMenu" action="Tools">
-      <placeholder name="ToolsOps_2">
-        <menuitem name="Gedit Tables" action="Gedit Tables"/>
-      </placeholder>
-    </menu>
+	<menu name="ToolsMenu" action="Tools">
+	  <placeholder name="ToolsOps_2">
+		<menuitem name="Gedit Tables" action="Gedit Tables"/>
+	  </placeholder>
+	</menu>
   </menubar>
 </ui>
 """
@@ -195,8 +198,8 @@ class GTWindow:
 		#create action group
 		self.action_group = gtk.ActionGroup("Gedit Tables Actions")
 		#add actions to group
-		self.action_group.add_actions([("Gedit Tables", None, 
-		gettext("Create Table"), None, gettext("Create a Table"), 
+		self.action_group.add_actions([("Gedit Tables", None, \
+		gettext("Create Table"), None, gettext("Create a Table"), \
 		self.launch_dialog)])
 		#add action group to manager
 		manager.insert_action_group(self.action_group, -1)
@@ -215,7 +218,7 @@ class GTWindow:
 		doc = self.window.get_active_document()
 		if not doc:
 			return
-		self.plugin.on_menu_click(self.window)
+		self.plugin.on_menu_click(self.window, doc)
 	
 	
 class GeditTables(gedit.Plugin):
@@ -235,10 +238,12 @@ class GeditTables(gedit.Plugin):
 	def update_ui(self, window):
 		self.instances[window].update_ui()
 		
-	def insert_table(self, table, document):
-		document.insert_at_cursor(table) #insert table at cursor position
+	def insert_table(self, table_maker):
+		document = gedit.app_get_default().get_active_window().get_active_document()
+		document.insert_at_cursor(table_maker.table()) #insert table at cursor position
 		
-	def insert_data_table(self, document, delimiter, table_maker):
+	def insert_data_table(self, delimiter, table_maker):
+		document = gedit.app_get_default().get_active_window().get_active_document()
 		bounds = document.get_selection_bounds() #get boundaries of highlighted
 		if not bounds:
 			return False
@@ -248,22 +253,266 @@ class GeditTables(gedit.Plugin):
 		table = table_maker.table_data(text, delimiter) #create table around it
 		document.delete(start, end) #delete highlighted portion and...
 		document.insert_at_cursor(table) #...overwrite with table
+		
+	def is_valid_tm(self, vals):
+		pass
 	
-	def on_menu_click(self, window):
-		if not self.dialog:
-			self.dialog = gtk.Dialog(gettext("Insert Table"), window, 
-			gtk.DIALOG_DESTROY_WITH_PARENT, (gtk.BUTTONS_OK_CANCEL))
-			
-			#build custom dialog with widgets
-			
-			self.dialog.connect('response', self.on_dialog_response)
+	def on_menu_click(self, window, document):
+		self.dialog = TableDialog(self)
+		self.dialog.set_transient_for(window)
+		self.dialog.present()
 		
 	def on_dialog_response(self, dialog, response):
-		if response == gtk.RESPONSE_OK:
-			pass		
+		if response == gtk.RESPONSE_ACCEPT:
+			doc = gedit.app_get_default().get_active_window().get_active_document()
 		else:
-			self.dialog.destroy()
 			self.dialog = None
+			self.dialog.destroy()
 			
+	
 			
+class TableDialog():
+	def toggle_snap(self, widget, spin):
+		spin.set_snap_to_ticks(widget.get_active())
+
+	def toggle_numeric(self, widget, spin):
+		spin.set_numeric(widget.get_active())
+
+	def change_digits(self, widget, spin, spin1):
+		spin1.set_digits(spin.get_value_as_int())
+
+	def get_value(self, widget, data, spin, spin2, label):
+		if data == 1:
+			buf = "%d" % spin.get_value_as_int()
+		else:
+			buf = "%0.*f" % (spin2.get_value_as_int(),
+							 spin.get_value())
+		label.set_text(buf)
+		
+	def toggle_with_data(self, widget, delim, row, col, width):
+		b = not widget.get_active()
+		delim.set_sensitive(not b)
+		row.set_sensitive(b)
+		col.set_sensitive(b)
+		width.set_sensitive(b)
+		
+	def close(self, widget):
+		self.plugin.dialog = None
+		self.window.destroy()
+		
+	def make_table(self, widget, row, col, width, height, ch_h, ch_v, ch_io, \
+	ch_ii, delim, check, borders):
+		#pull data from dialog fields
+		rows = row.get_value_as_int()
+		columns = col.get_value_as_int()
+		spaces = int(width.get_text())
+		lines = int(height.get_text())
+		horiz = ch_h.get_text()
+		vert = ch_v.get_text()
+		inner = ch_ii.get_text()
+		outer = ch_io.get_text()
+		#create TableMaker instance
+		tm = TableMaker(columns, rows, lines, spaces, (horiz, vert, outer, \
+		inner), borders.get_active())
+		
+		if check.get_active():
+			delimiter = delim.get_text()
+			self.plugin.insert_data_table(delimiter, tm)
+		else:
+			self.plugin.insert_table(tm)
+		
+		
+		
+
+	def __init__(self, plugin):
+		self.plugin = plugin
+		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+		#window.connect("destroy", lambda w: gtk.main_quit())
+		self.window.set_title("Insert Table")
+		self.window.set_resizable(False)
+
+		main_vbox = gtk.VBox(False, 5)
+		main_vbox.set_border_width(10)
+		self.window.add(main_vbox)
+
+
+		frame = gtk.Frame("Table Dimensions")
+		main_vbox.pack_start(frame, True, True, 0)
+  
+		vbox = gtk.VBox(False, 0)
+		vbox.set_border_width(5)
+		frame.add(vbox)
+
+		hbox = gtk.HBox(False, 0)
+		vbox.pack_start(hbox, True, True, 5)
+  
+		vbox2 = gtk.VBox(False, 0)
+		hbox.pack_start(vbox2, True, True, 5)
+
+		label = gtk.Label("Rows:")
+		label.set_alignment(0, 0.5)
+		vbox2.pack_start(label, False, True, 5)
+  
+		adj = gtk.Adjustment(1.0, 1.0, 1000.0, 1.0, 5.0, 0.0)
+		spinner_rows = gtk.SpinButton(adj, 0, 0)
+		spinner_rows.set_wrap(True)
+		vbox2.pack_start(spinner_rows, False, True, 0)
+  
+		vbox2 = gtk.VBox(False, 0)
+		hbox.pack_start(vbox2, True, True, 5)
+  
+		label = gtk.Label("Columns:")
+		label.set_alignment(0, 0.5)
+		vbox2.pack_start(label, False, True, 5)
+
+		adj = gtk.Adjustment(1.0, 1.0, 1000.0, 1.0, 5.0, 0.0)
+		spinner_cols = gtk.SpinButton(adj, 0, 0)
+		spinner_cols.set_wrap(True)
+		vbox2.pack_start(spinner_cols, False, True, 0)
+  
+		hbox = gtk.HBox(False, 0)
+		vbox.pack_start(hbox, True, True, 5)
+		
+		vbox2 = gtk.VBox(False, 0)
+		hbox.pack_start(vbox2, True, True, 5)
+  
+		label = gtk.Label("Row Height:")
+		label.set_alignment(0, 0.5)
+		vbox2.pack_start(label, False, True, 5)
+		
+		hbox2 = gtk.HBox(False, 0)
+		
+		entry_rows = gtk.Entry()
+		entry_rows.set_max_length(3)
+		entry_rows.set_text("1")
+		entry_rows.set_width_chars(10)
+		hbox2.pack_start(entry_rows, False, True, 0)
+		
+		label = gtk.Label(" lines")
+		label.set_alignment(0, 0.5)
+		hbox2.pack_start(label, False, True, 0)
+		
+		vbox2.pack_start(hbox2, False, True, 0)
+		
+		vbox2 = gtk.VBox(False, 0)
+		hbox.pack_start(vbox2, True, True, 5)
+		
+		label = gtk.Label("Column Width:")
+		label.set_alignment(0, 0.5)
+		vbox2.pack_start(label, False, True, 5)
+		
+		hbox2 = gtk.HBox(False, 0)
+		vbox2.pack_start(hbox2, False, True, 0)
+		
+		entry_cols = gtk.Entry()
+		entry_cols.set_max_length(3)
+		entry_cols.set_text("5")
+		entry_cols.set_width_chars(10)
+		hbox2.pack_start(entry_cols, False, True, 0)
+		
+		label = gtk.Label(" spaces")
+		label.set_alignment(0, 0.5)
+		hbox2.pack_start(label, False, True, 0)
+		
+		borders = gtk.CheckButton("Build outer walls of table")
+		borders.set_active(True)
+		vbox.pack_start(borders, False, True, 5)
+		
+		
+		frame = gtk.Frame("Characters")
+		main_vbox.pack_start(frame, True, True, 0)
+		
+		vbox = gtk.VBox(False, 0)
+		vbox.set_border_width(5)
+		frame.add(vbox)
+		
+		hbox = gtk.HBox(False, 0)
+		vbox.pack_start(hbox, False, True, 5)
+		
+		label = gtk.Label("Horizontal:")
+		label.set_alignment(0, 0.5)
+		hbox.pack_start(label, False, True, 0)
+		
+		entry_horiz = gtk.Entry()
+		entry_horiz.set_max_length(1)
+		entry_horiz.set_text("-")
+		entry_horiz.set_width_chars(3)
+		hbox.pack_start(entry_horiz, False, True, 12)
+		
+		label = gtk.Label("Vertical:")
+		label.set_alignment(0, 0.5)
+		hbox.pack_start(label, False, True, 0)
+		
+		entry_vert = gtk.Entry()
+		entry_vert.set_max_length(1)
+		entry_vert.set_text("|")
+		entry_vert.set_width_chars(3)
+		hbox.pack_start(entry_vert, False, True, 27)
+		
+		hbox = gtk.HBox(False, 0)
+		vbox.pack_start(hbox, False, True, 5)
+		
+		label = gtk.Label("Outer Cross:")
+		label.set_alignment(0, 0.5)
+		hbox.pack_start(label, False, True, 0)
+		
+		entry_outer = gtk.Entry()
+		entry_outer.set_max_length(1)
+		entry_outer.set_text("o")
+		entry_outer.set_width_chars(3)
+		hbox.pack_start(entry_outer, False, True, 5)
+		
+		label = gtk.Label("Inner Cross:")
+		label.set_alignment(0, 0.5)
+		hbox.pack_start(label, False, True, 5)
+		
+		entry_inner = gtk.Entry()
+		entry_inner.set_max_length(1)
+		entry_inner.set_text("+")
+		entry_inner.set_width_chars(3)
+		hbox.pack_start(entry_inner, False, True, 0)
+		
+		
+		frame = gtk.Frame("Fill Table")
+		main_vbox.pack_start(frame, True, True, 0)
+		
+		vbox = gtk.VBox(False, 0)
+		vbox.set_border_width(5)
+		frame.add(vbox)
+		
+		entry_delim = gtk.Entry()
+		check = gtk.CheckButton("Build around highlighted data")
+		check.connect("clicked", self.toggle_with_data, entry_delim, \
+		spinner_rows, spinner_cols, entry_cols)
+		vbox.pack_start(check, False, True, 5)
+		
+		hbox = gtk.HBox(False, 0)
+		vbox.pack_start(hbox, False, True, 0)
+		
+		label = gtk.Label("Delimiter:")
+		label.set_alignment(0, 0.5)
+		hbox.pack_start(label, False, True, 0)
+		
+		entry_delim.set_max_length(1)
+		entry_delim.set_text(",")
+		entry_delim.set_width_chars(10)
+		entry_delim.set_sensitive(False)
+		hbox.pack_start(entry_delim, False, True, 10)
+  
+		hbox = gtk.HBox(False, 0)
+		main_vbox.pack_start(hbox, False, True, 0)
+  
+		button_ok = gtk.Button("Insert")
+		button_ok.connect("clicked", self.make_table, spinner_rows, spinner_cols, \
+		entry_cols, entry_rows, entry_horiz, entry_vert, entry_outer, \
+		entry_inner, entry_delim, check, borders)
+		hbox.pack_start(button_ok, True, True, 5)
+  
+		button_cancel = gtk.Button("Cancel")
+		button_cancel.connect("clicked", self.close)
+		hbox.pack_start(button_cancel, True, True, 5)
+		self.window.show_all()
+
+
+
 			
