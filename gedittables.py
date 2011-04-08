@@ -183,17 +183,21 @@ class TableMaker:
 class GTWindow:
 
 	def __init__(self, plugin, window):
+		"""Instantiates an instance of the plugin for the current window. The 
+		real action taken here is to create a menu item in the Tools menu."""
 		self.window = window
 		self.plugin = plugin
 		self.insert_menu()
 		
 	def deactivate(self):
+		"""Cleans up and destroys this instance of the plugin."""
 		self.remove_menu()
 		self.window = None
 		self.plugin = None
 		self.action_group = None
 		
 	def insert_menu(self):
+		"""Creates and inserts a menu item into the Tools menu."""
 		manager = self.window.get_ui_manager()
 		#create action group
 		self.action_group = gtk.ActionGroup("Gedit Tables Actions")
@@ -206,15 +210,20 @@ class GTWindow:
 		self.ui_id = manager.add_ui_from_string(ui_str)
 		
 	def remove_menu(self):
+		"""Removes our plugin's menu item from the Tools menu."""
 		manager = self.window.get_ui_manager()
 		manager.remove_ui(self.ui_id)
 		manager.remove_action_group(self.action_group)
 		manager.ensure_update()
 		
 	def update_ui(self):
+		"""Updates the UI for this instance by confirming that there is in fact 
+		an active document for our plugin."""
 		self.action_group.set_sensitive(self.window.get_active_document()!=None)
 		
 	def launch_dialog(self, action):
+		"""Launches a callback in the main plugin class which opens up the 
+		custom table dialog."""
 		doc = self.window.get_active_document()
 		if not doc:
 			return
@@ -224,25 +233,38 @@ class GTWindow:
 class GeditTables(gedit.Plugin):
 
 	def __init__(self):
+		"""Instantiates the main plugin. This is called when Gedit is first 
+		opened by the user."""
 		gedit.Plugin.__init__(self)
 		self.instances = {}
 		self.dialog = None
 	
 	def activate(self, window):
+		"""Instantiates a new instance of the plugin for a newly created 
+		window."""
 		self.instances[window] = GTWindow(self, window)
 	
 	def deactivate(self, window):
+		"""Closes an instance of the plugin in the event that a Gedit window is 
+		closed."""
 		self.instances[window].deactivate()
 		del self.instances[window]
 		
 	def update_ui(self, window):
+		"""Updates the UI of a particular instance of the plugin if it is 
+		requested by some event."""
 		self.instances[window].update_ui()
 		
 	def insert_table(self, table_maker):
+		"""Takes in a TableMaker object and constructs a table, then inserting 
+		said table at the cursor position of the current active document."""
 		document = gedit.app_get_default().get_active_window().get_active_document()
 		document.insert_at_cursor(table_maker.table()) #insert table at cursor position
 		
 	def insert_data_table(self, delimiter, table_maker):
+		"""Takes in a TableMaker object and a delimiter (designed for building 
+		the table around some highlighted data) and constructs the table. This 
+		is then inserted at the cursor position of the active document."""
 		document = gedit.app_get_default().get_active_window().get_active_document()
 		bounds = document.get_selection_bounds() #get boundaries of highlighted
 		if not bounds:
@@ -258,6 +280,7 @@ class GeditTables(gedit.Plugin):
 		pass
 	
 	def on_menu_click(self, window, document):
+		"""Callback for when the menu item is clicked to launch our dialog."""
 		self.dialog = TableDialog(self)
 		self.dialog.set_transient_for(window)
 		self.dialog.present()
@@ -268,73 +291,22 @@ class GeditTables(gedit.Plugin):
 		else:
 			self.dialog = None
 			self.dialog.destroy()
-			
 	
 			
 class TableDialog():
-	def toggle_snap(self, widget, spin):
-		spin.set_snap_to_ticks(widget.get_active())
-
-	def toggle_numeric(self, widget, spin):
-		spin.set_numeric(widget.get_active())
-
-	def change_digits(self, widget, spin, spin1):
-		spin1.set_digits(spin.get_value_as_int())
-
-	def get_value(self, widget, data, spin, spin2, label):
-		if data == 1:
-			buf = "%d" % spin.get_value_as_int()
-		else:
-			buf = "%0.*f" % (spin2.get_value_as_int(),
-							 spin.get_value())
-		label.set_text(buf)
-		
-	def toggle_with_data(self, widget, delim, row, col, width):
-		b = not widget.get_active()
-		delim.set_sensitive(not b)
-		row.set_sensitive(b)
-		col.set_sensitive(b)
-		width.set_sensitive(b)
-		
-	def close(self, widget):
-		self.plugin.dialog = None
-		self.window.destroy()
-		
-	def make_table(self, widget, row, col, width, height, ch_h, ch_v, ch_io, \
-	ch_ii, delim, check, borders):
-		#pull data from dialog fields
-		rows = row.get_value_as_int()
-		columns = col.get_value_as_int()
-		spaces = int(width.get_text())
-		lines = int(height.get_text())
-		horiz = ch_h.get_text()
-		vert = ch_v.get_text()
-		inner = ch_ii.get_text()
-		outer = ch_io.get_text()
-		#create TableMaker instance
-		tm = TableMaker(columns, rows, lines, spaces, (horiz, vert, outer, \
-		inner), borders.get_active())
-		
-		if check.get_active():
-			delimiter = delim.get_text()
-			self.plugin.insert_data_table(delimiter, tm)
-		else:
-			self.plugin.insert_table(tm)
-		
-		
-		
 
 	def __init__(self, plugin):
+		"""Constructs a custom dialog to allow control over table creation for 
+		the user. This is actually a gtk.Window instead of a gtk.Dialog, in 
+		order to allow us more fine control over the layout of the dialog."""
 		self.plugin = plugin
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-		#window.connect("destroy", lambda w: gtk.main_quit())
 		self.window.set_title("Insert Table")
 		self.window.set_resizable(False)
 
 		main_vbox = gtk.VBox(False, 5)
 		main_vbox.set_border_width(10)
 		self.window.add(main_vbox)
-
 
 		frame = gtk.Frame("Table Dimensions")
 		main_vbox.pack_start(frame, True, True, 0)
@@ -513,6 +485,46 @@ class TableDialog():
 		hbox.pack_start(button_cancel, True, True, 5)
 		self.window.show_all()
 
+	def toggle_with_data(self, widget, delim, row, col, width):
+		"""Callback for the check button which determines if the user would 
+		like to build the table around highlighted data."""
+		b = not widget.get_active()
+		delim.set_sensitive(not b)
+		row.set_sensitive(b)
+		col.set_sensitive(b)
+		width.set_sensitive(b)
+		
+	def close(self, widget):
+		"""Callback for the cancel button."""
+		self.plugin.dialog = None
+		self.window.destroy()
+		
+	def make_table(self, widget, row, col, width, height, ch_h, ch_v, ch_io, \
+	ch_ii, delim, check, borders):
+		"""Callback for the insert button. Pulls the data from the fields of 
+		the window, validates the data and, if everything is okay, instantiates 
+		a TableMaker object. The table is then constructed and inserted into 
+		the document and the window is closed."""
+		#pull data from dialog fields
+		rows = row.get_value_as_int()
+		columns = col.get_value_as_int()
+		spaces = int(width.get_text())
+		lines = int(height.get_text())
+		horiz = ch_h.get_text()
+		vert = ch_v.get_text()
+		inner = ch_ii.get_text()
+		outer = ch_io.get_text()
+		#create TableMaker instance
+		tm = TableMaker(columns, rows, lines, spaces, (horiz, vert, outer, \
+		inner), borders.get_active())
+		
+		if check.get_active():
+			delimiter = delim.get_text()
+			self.plugin.insert_data_table(delimiter, tm)
+			self.close(widget)
+		else:
+			self.plugin.insert_table(tm)
+			self.close(widget)
 
 
 			
