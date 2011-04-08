@@ -2,7 +2,7 @@ import gedit
 import pygtk
 pygtk.require('2.0')
 import gtk
-from gettext import gettext
+from gettext import gettext as _
 
 ui_str = """
 <ui>
@@ -203,8 +203,7 @@ class GTWindow:
 		self.action_group = gtk.ActionGroup("Gedit Tables Actions")
 		#add actions to group
 		self.action_group.add_actions([("Gedit Tables", None, \
-		gettext("Create Table"), None, gettext("Create a Table"), \
-		self.launch_dialog)])
+		_("Create Table"), None, _("Create a Table"), self.launch_dialog)])
 		#add action group to manager
 		manager.insert_action_group(self.action_group, -1)
 		self.ui_id = manager.add_ui_from_string(ui_str)
@@ -301,14 +300,14 @@ class TableDialog():
 		order to allow us more fine control over the layout of the dialog."""
 		self.plugin = plugin
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-		self.window.set_title("Insert Table")
+		self.window.set_title(_("Insert Table"))
 		self.window.set_resizable(False)
 
 		main_vbox = gtk.VBox(False, 5)
 		main_vbox.set_border_width(10)
 		self.window.add(main_vbox)
 
-		frame = gtk.Frame("Table Dimensions")
+		frame = gtk.Frame(_("Table Dimensions"))
 		main_vbox.pack_start(frame, True, True, 0)
   
 		vbox = gtk.VBox(False, 0)
@@ -321,7 +320,7 @@ class TableDialog():
 		vbox2 = gtk.VBox(False, 0)
 		hbox.pack_start(vbox2, True, True, 5)
 
-		label = gtk.Label("Rows:")
+		label = gtk.Label(_("Rows:"))
 		label.set_alignment(0, 0.5)
 		vbox2.pack_start(label, False, True, 5)
   
@@ -333,7 +332,7 @@ class TableDialog():
 		vbox2 = gtk.VBox(False, 0)
 		hbox.pack_start(vbox2, True, True, 5)
   
-		label = gtk.Label("Columns:")
+		label = gtk.Label(_("Columns:"))
 		label.set_alignment(0, 0.5)
 		vbox2.pack_start(label, False, True, 5)
 
@@ -348,7 +347,7 @@ class TableDialog():
 		vbox2 = gtk.VBox(False, 0)
 		hbox.pack_start(vbox2, True, True, 5)
   
-		label = gtk.Label("Row Height:")
+		label = gtk.Label(_("Row Height:"))
 		label.set_alignment(0, 0.5)
 		vbox2.pack_start(label, False, True, 5)
 		
@@ -360,7 +359,7 @@ class TableDialog():
 		entry_rows.set_width_chars(10)
 		hbox2.pack_start(entry_rows, False, True, 0)
 		
-		label = gtk.Label(" lines")
+		label = gtk.Label(_(" lines"))
 		label.set_alignment(0, 0.5)
 		hbox2.pack_start(label, False, True, 0)
 		
@@ -369,7 +368,7 @@ class TableDialog():
 		vbox2 = gtk.VBox(False, 0)
 		hbox.pack_start(vbox2, True, True, 5)
 		
-		label = gtk.Label("Column Width:")
+		label = gtk.Label(_("Column Width:"))
 		label.set_alignment(0, 0.5)
 		vbox2.pack_start(label, False, True, 5)
 		
@@ -382,16 +381,16 @@ class TableDialog():
 		entry_cols.set_width_chars(10)
 		hbox2.pack_start(entry_cols, False, True, 0)
 		
-		label = gtk.Label(" spaces")
+		label = gtk.Label(_(" spaces"))
 		label.set_alignment(0, 0.5)
 		hbox2.pack_start(label, False, True, 0)
 		
-		borders = gtk.CheckButton("Build outer walls of table")
+		borders = gtk.CheckButton(_("Build outer walls of table"))
 		borders.set_active(True)
 		vbox.pack_start(borders, False, True, 5)
 		
 		
-		frame = gtk.Frame("Characters")
+		frame = gtk.Frame(_("Characters"))
 		main_vbox.pack_start(frame, True, True, 0)
 		
 		vbox = gtk.VBox(False, 0)
@@ -401,7 +400,7 @@ class TableDialog():
 		hbox = gtk.HBox(False, 0)
 		vbox.pack_start(hbox, False, True, 5)
 		
-		label = gtk.Label("Horizontal:")
+		label = gtk.Label(_("Horizontal:"))
 		label.set_alignment(0, 0.5)
 		hbox.pack_start(label, False, True, 0)
 		
@@ -411,7 +410,7 @@ class TableDialog():
 		entry_horiz.set_width_chars(3)
 		hbox.pack_start(entry_horiz, False, True, 12)
 		
-		label = gtk.Label("Vertical:")
+		label = gtk.Label(_("Vertical:"))
 		label.set_alignment(0, 0.5)
 		hbox.pack_start(label, False, True, 0)
 		
@@ -424,7 +423,7 @@ class TableDialog():
 		hbox = gtk.HBox(False, 0)
 		vbox.pack_start(hbox, False, True, 5)
 		
-		label = gtk.Label("Outer Cross:")
+		label = gtk.Label(_("Outer Cross:"))
 		label.set_alignment(0, 0.5)
 		hbox.pack_start(label, False, True, 0)
 		
@@ -434,7 +433,7 @@ class TableDialog():
 		entry_outer.set_width_chars(3)
 		hbox.pack_start(entry_outer, False, True, 5)
 		
-		label = gtk.Label("Inner Cross:")
+		label = gtk.Label(_("Inner Cross:"))
 		label.set_alignment(0, 0.5)
 		hbox.pack_start(label, False, True, 5)
 		
@@ -445,7 +444,7 @@ class TableDialog():
 		hbox.pack_start(entry_inner, False, True, 0)
 		
 		
-		frame = gtk.Frame("Fill Table")
+		frame = gtk.Frame(_("Fill Table"))
 		main_vbox.pack_start(frame, True, True, 0)
 		
 		vbox = gtk.VBox(False, 0)
@@ -453,7 +452,7 @@ class TableDialog():
 		frame.add(vbox)
 		
 		entry_delim = gtk.Entry()
-		check = gtk.CheckButton("Build around highlighted data")
+		check = gtk.CheckButton(_("Build around highlighted data"))
 		check.connect("clicked", self.toggle_with_data, entry_delim, \
 		spinner_rows, spinner_cols, entry_cols)
 		vbox.pack_start(check, False, True, 5)
@@ -461,7 +460,7 @@ class TableDialog():
 		hbox = gtk.HBox(False, 0)
 		vbox.pack_start(hbox, False, True, 0)
 		
-		label = gtk.Label("Delimiter:")
+		label = gtk.Label(_("Delimiter:"))
 		label.set_alignment(0, 0.5)
 		hbox.pack_start(label, False, True, 0)
 		
@@ -474,13 +473,13 @@ class TableDialog():
 		hbox = gtk.HBox(False, 0)
 		main_vbox.pack_start(hbox, False, True, 0)
   
-		button_ok = gtk.Button("Insert")
+		button_ok = gtk.Button(_("Insert"))
 		button_ok.connect("clicked", self.make_table, spinner_rows, spinner_cols, \
 		entry_cols, entry_rows, entry_horiz, entry_vert, entry_outer, \
 		entry_inner, entry_delim, check, borders)
 		hbox.pack_start(button_ok, True, True, 5)
   
-		button_cancel = gtk.Button("Cancel")
+		button_cancel = gtk.Button(_("Cancel"))
 		button_cancel.connect("clicked", self.close)
 		hbox.pack_start(button_cancel, True, True, 5)
 		self.window.show_all()
