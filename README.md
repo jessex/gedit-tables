@@ -52,9 +52,7 @@ highlighted data will be inserted into a freshly created table
 
 ## Screenshots
 
-![An example without data](without_data.png "The dialog and the resulting output")
-
-![An example with data](with_data.png "The dialog, the highlighted input and the resulting output")
+Please view the sample .png files in this directory
                    
 ## License
 
