@@ -52,9 +52,9 @@ highlighted data will be inserted into a freshly created table
 
 ## Screenshots
 
-![An example without data](without_data.png "The dialog and the resulting output")
+![An example without data](/Users/joshua/Desktop/Projects/gedit-tables/without_data.png "The dialog and the resulting output")
 
-![An example with data](with_data.png "The dialog, the highlighted input and the resulting output")
+![An example with data](/Users/joshua/Desktop/Projects/gedit-tables/with_data.png "The dialog, the highlighted input and the resulting output")
                    
 ## License
 
