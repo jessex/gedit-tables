@@ -274,6 +274,7 @@ class GeditTables(gedit.Plugin):
 		table = table_maker.table_data(text, delimiter) #create table around it
 		document.delete(start, end) #delete highlighted portion and...
 		document.insert_at_cursor(table) #...overwrite with table
+		return True
 		
 	def is_valid_tm(self, vals):
 		pass
@@ -507,8 +508,15 @@ class TableDialog():
 		#pull data from dialog fields
 		rows = row.get_value_as_int()
 		columns = col.get_value_as_int()
-		spaces = int(width.get_text())
-		lines = int(height.get_text())
+		try:
+			spaces = int(width.get_text())
+			lines = int(height.get_text())
+		except ValueError:
+			dia = gtk.MessageDialog(None, \
+			gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR,  gtk.BUTTONS_CLOSE, \
+			"Please enter only integer data for width and height")
+			dia.run()
+			dia.destroy()
 		horiz = ch_h.get_text()
 		vert = ch_v.get_text()
 		inner = ch_ii.get_text()
@@ -519,8 +527,14 @@ class TableDialog():
 		
 		if check.get_active():
 			delimiter = delim.get_text()
-			self.plugin.insert_data_table(delimiter, tm)
-			self.close(widget)
+			if self.plugin.insert_data_table(delimiter, tm):
+				self.close(widget)
+			else:
+				dia = gtk.MessageDialog(None, \
+				gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR,  gtk.BUTTONS_CLOSE, \
+				"Please highlight text if you wish to build a table around data")
+				dia.run()
+				dia.destroy()
 		else:
 			self.plugin.insert_table(tm)
 			self.close(widget)
