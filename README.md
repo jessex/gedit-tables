@@ -15,6 +15,15 @@ Done. Simple and easy.
 
 A comprehensive list of Gedit plugins can be found <a href="http://live.gnome.org/Gedit/Plugins">right here</a>.
 
+## gedit 3 Compatibility
+
+Unfortunately, this plugin is not compatible with gedit 3.x as the update broke
+compatibility with gedit 2.x Python plugins: it now uses [PyGObject](https://live.gnome.org/PyGObject) instead of 
+[PyGTK](http://www.pygtk.org/) for its bindings.
+
+I have no _immediate_ plans to update Table Maker to work with gedit 3.x, but will
+look into it. Consider the _Installation_ section below to be specific to gedit 2.x.
+
 ## Installation
 
 1. Get Gedit (of course)
