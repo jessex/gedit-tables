@@ -1,9 +1,9 @@
-[Gedit Plugin]
+[Plugin]
 Loader=python
 Module=gedittables
-IAge=2
+IAge=3
 Name=Table Maker
 Description=Automatically create text-based tables
 Authors=Joshua Essex <essexjosh@gmail.com>
-Copyright=Copyright © 2011 Joshua Essex
+Copyright=Copyright © 2012 Joshua Essex
 Website=https://github.com/jessex/gedit-tables
