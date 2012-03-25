@@ -15,34 +15,39 @@ A comprehensive list of Gedit plugins can be found <a href="http://live.gnome.or
 
 ## Installation
 
-1. Get Gedit (of course)
+1. Get <a href="http://projects.gnome.org/gedit/">Gedit</a>
 
-2. Get the `gedittables.py` and `gedittables.plugin` files. 
+2. Get the `gedittables.py` and `gedittables.plugin` files
 
     Note that since Gedit 3 broke compatibility with plugins for Gedit 2, there 
-    are different downloads available for the plugin based on your editor 
-    version.
+    are different downloads of the plugin available based on your editor version.
 
 3. Copy the files into the plugin directory of Gedit. Specifically:
     
-    Copy the files into the user-plugin directory: `~/.local/share/gedit/plugins/`; or, 
-    Into the system-wide plugin directory, `/usr/lib/gedit/plugins/`
+    Copy the files into the user-plugin directory: `~/.local/share/gedit/plugins/`, or, 
+    into the system-wide plugin directory: `/usr/lib/gedit/plugins/`.
     
-4. Sip your favorite beverage because you're finished
+4. Fire up Gedit and open the Preferences menu and then the list of available 
+plugins. The Table Maker plugin entry will be inserted after installation. Enable 
+the plugin by clicking the check mark to the ON position
+    
+5. Sip your favorite beverage because you're finished
 
 ## Usage
 
-1. Fire up Gedit and open the Preferences menu and then the list of available 
-plugins. The Table Maker plugin entry will be inserted after installation. Enable 
-the plugin by clicking the check mark to the ON position
-
-2. When you wish to insert a blank table, open the Tools menu and click "Create 
+1. When you wish to insert an empty table, open the Tools menu and click "Create 
 Table" to bring up the dialog. Tune your table settings and click "Insert"
 
-3. If you wish to auto-build a table around some data, open the dialog as in 
+2. If you wish to auto-build a table around some data, open the dialog as in 
 the previous step and check "Build around highlighted data". Then, highlight some 
 data in your document, separated by a specified delimiter, and click "Insert". 
 The highlighted data will be inserted into a freshly created table
+
+## Screenshots
+
+![Without Data](/without_data.png)
+
+![With Data](/with_data.png)
                    
 ## License
 
