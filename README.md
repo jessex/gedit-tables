@@ -45,9 +45,9 @@ The highlighted data will be inserted into a freshly created table
 
 ## Screenshots
 
-![Without Data](/without_data.png)
+![Without Data](without_data.png)
 
-![With Data](/with_data.png)
+![With Data](with_data.png)
                    
 ## License
 
