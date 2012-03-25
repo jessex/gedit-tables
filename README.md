@@ -45,9 +45,9 @@ The highlighted data will be inserted into a freshly created table
 
 ## Screenshots
 
-![Without Data](without_data.png)
+![Without Data](https://github.com/jessex/gedit-tables/raw/master/with_data.png)
 
-![With Data](with_data.png)
+![With Data](https://github.com/jessex/gedit-tables/raw/master/without_data.png)
                    
 ## License
 
