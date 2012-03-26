@@ -6,26 +6,30 @@ Gedit is a dead simple, highly effective text editor. Few frills, nothing
 extraneous, only what's needed. However, it also features a rich plugin system
 to allow us to extend its functionality.
 
-Table Maker is a Gedit plugin which affords pseudo-Word Document style table 
-creation. A simple dialog is opened up and the user picks some parameters, such 
-as the amount of rows and columns, and a table is inserted into the document. 
-Done. Simple and easy.
-
 A comprehensive list of Gedit plugins can be found <a href="http://live.gnome.org/Gedit/Plugins">right here</a>.
+
+Table Maker is a Gedit plugin which affords pseudo-Word Document style table 
+creation. You open a little window, you pick some parameters, such as the amount
+of rows and columns, and a table gets inserted into the document. Done.
 
 ## Installation
 
 1. Get <a href="http://projects.gnome.org/gedit/">Gedit</a>
 
-2. Get the `gedittables.py` and `gedittables.plugin` files
+2. Get the `gedittables/` directory and `gedittables.plugin` file
 
     Note that since Gedit 3 broke compatibility with plugins for Gedit 2, there 
     are different downloads of the plugin available based on your editor version.
+    The Gedit 2 version features a `gedittables.py` file instead of the aforementioned
+    directory.
 
-3. Copy the files into the plugin directory of Gedit. Specifically:
+3. Copy the directory and file into the plugin directory of Gedit. Specifically:
     
-    Copy the files into the user-plugin directory: `~/.local/share/gedit/plugins/`, or, 
-    into the system-wide plugin directory: `/usr/lib/gedit/plugins/`.
+    Copy them into the user-plugin directory: `~/.local/share/gedit/plugins/`, or, 
+    into the system-wide plugin directory: `/usr/lib/gedit/plugins/`. So, something like:
+    
+    `$ cp gedittables.plugin ~/.local/share/gedit/plugins/` <br>
+    `$ cp -R gedittables/ ~/.local/share/gedit/plugins/`
     
 4. Fire up Gedit and open the Preferences menu and then the list of available 
 plugins. The Table Maker plugin entry will be inserted after installation. Enable 
